@@ -1,0 +1,333 @@
+/*Robert Devaney 
+ * Utility of program: This program is a record application for managing information about people, actors, and prisoners.
+ */
+
+import javax.swing.JOptionPane;
+import java.util.ArrayList;
+
+public class Main {
+	public static void main(String[] args) {
+		ArrayList<Object> peopleList = new ArrayList<>();
+		int option;
+		// Sentinel controlled loop
+		do {
+			option = Integer.parseInt(JOptionPane.showInputDialog("MAIN MENU\n1. Add a person\n2. Add an actor\n3. Add a prisoner\n4. Display all records to screen\n5. Summary\n6. Quit"));
+
+			switch (option) {
+			case 1:
+				Person person = new Person();
+				peopleList.add(person);
+				break;
+			case 2:
+				Actor actor = new Actor();
+				peopleList.add(actor);
+				break;
+			case 3:
+				Prisoner prisoner = new Prisoner();
+				peopleList.add(prisoner);
+				break;
+			case 4:
+				displayRecords(peopleList);
+				break;
+			case 5:
+				summary(peopleList);
+				break;
+			case 6:
+				break;
+			default:
+				JOptionPane.showMessageDialog(null, "Invalid option. Please choose a valid option from the menu.");
+			}
+		} while (option != 6);
+	}
+	// Method to display all records to the screen
+	public static void displayRecords(ArrayList<Object> peopleList) {
+		StringBuilder records =        new StringBuilder("Records:\n");
+		for (Object person : peopleList) {
+			records.append(person.toString()).append("\n");
+		}
+		JOptionPane.showMessageDialog(null, records.toString());
+	}
+	// Method to display the summary of records to the screen
+	public static void summary(ArrayList<Object> peopleList) {
+		int totalPeople = 0;
+		int totalActors = 0;
+		int totalPrisoners = 0;
+		Prisoner longestServingPrisoner = null;
+		Actor mostExperiencedActor = null;
+		// Looping through the records to find total number of people, actors, and prisoners
+		for (Object person : peopleList) {
+			if (person instanceof Person && !(person instanceof Actor) && !(person instanceof Prisoner)) {
+				totalPeople++;
+			} else if (person instanceof Actor) {
+				totalActors++;
+				Actor actor = (Actor) person;
+				if (mostExperiencedActor == null || actor.getMoviesMade() > mostExperiencedActor.getMoviesMade()) {
+					mostExperiencedActor = actor;
+				}
+			} else if (person instanceof Prisoner) {
+				totalPrisoners++;
+				Prisoner prisoner = (Prisoner) person;
+				if (longestServingPrisoner == null || prisoner.getTotalYearsSentenced() > longestServingPrisoner.getTotalYearsSentenced()) {
+					longestServingPrisoner = prisoner;
+				}
+			}
+		}
+		// Creating the summary to be displayed to the user
+		String summary = "Summary:\nTotal number of People: " + totalPeople + "\nTotal number of Actors: " + totalActors + "\nTotal number of Prisoners: " + totalPrisoners;
+		if (longestServingPrisoner != null) {
+			summary += "\n\nPrisoner with the longest time in prison:\n" + longestServingPrisoner.toString() + "Crime: " + longestServingPrisoner.getCrime() + "\nTotal years sentenced: " + longestServingPrisoner.getTotalYearsSentenced() + "\nYears remaining: " + longestServingPrisoner.getRemainingYears() + "\n";
+		}
+		if (mostExperiencedActor != null) {
+			summary += "\n\nMost experienced actor:\n" + mostExperiencedActor.toString() + "Main genre: " + mostExperiencedActor.getGenre() + "\nTotal movies made: " + mostExperiencedActor.getMoviesMade() + "\n";
+		}
+		JOptionPane.showMessageDialog(null, summary);
+	}
+
+}
+
+
+public class Person {
+	private Name name;
+	private double height;
+	private double weight;
+
+	public Person() {
+		makePerson();
+	}
+	// This protected constructor method 
+	protected Person(boolean isActor) {
+		if (!isActor) {
+			makePerson();
+		}
+	}
+
+	protected Person(boolean isActor, boolean isPrisoner) {
+		if (!isActor && !isPrisoner) {
+			makePerson();
+		}
+	}
+
+	public Person(Name name, double height, double weight) {
+		setName(name);
+		setHeight(height);
+		setWeight(weight);
+	}
+
+	public void setName(Name name) {
+		this.name = name;
+	}
+
+	public Name getName() {
+		return name;
+	}
+
+	// This method sets the person's height to the given value within range
+	public void setHeight(double height) {
+		if (height >= 12 && height <= 144) {
+			this.height = height;
+		} else {
+			throw new IllegalArgumentException("Invalid height. Height should be between 12 inches and 12 feet.");
+		}
+	}
+
+	public double getHeight() {
+		return height;
+	}
+	
+	// This method sets the person's weight to the given value within range
+	public void setWeight(double weight) {
+		if (weight >= 25 && weight <= 1000) {
+			this.weight = weight;
+		} else {
+			throw new IllegalArgumentException("Invalid weight. Weight should be between 25 pounds and 1000 pounds.");
+		}
+	}
+
+	public double getWeight() {
+		return weight;
+	}
+
+	//Prompts user for information
+	public void makePerson() {
+		String firstName = JOptionPane.showInputDialog("Enter the first name:");
+		String middleInitial = JOptionPane.showInputDialog("Enter the middle initial:");
+		String lastName = JOptionPane.showInputDialog("Enter the last name:");
+		Name name = new Name(firstName, middleInitial, lastName);
+		setName(name);
+
+		double height = Double.parseDouble(JOptionPane.showInputDialog("Enter the height (in inches):"));
+		setHeight(height);
+
+		double weight = Double.parseDouble(JOptionPane.showInputDialog("Enter the weight (in pounds):"));
+		setWeight(weight);
+	}
+
+	//You know what this does
+	@Override
+	public String toString() {
+		return "Name: " + name + "\nHeight: " + height + " inches\nWeight: " + weight + " pounds\n";
+	}
+}
+
+public class Actor extends Person {
+	private String mainGenre;
+	private int totalMoviesMade;
+
+	// Pass true to indicate this is an Actor
+	public Actor() {
+		super(true); 
+		makeActor();
+	}
+
+	// Accepts a string and sets the main genre instance variable if the input matches 
+	private void setMainGenre(String mainGenre) {
+		if (mainGenre.equalsIgnoreCase("Comedy") || mainGenre.equalsIgnoreCase("Horror") || mainGenre.equalsIgnoreCase("Drama")) {
+			this.mainGenre = mainGenre;
+		} else {
+			throw new IllegalArgumentException("Invalid genre. Genre must be Comedy, Horror, or Drama.");
+		}
+	}
+
+	private String getMainGenre() {
+		return mainGenre;
+	}
+
+	//Accepts an integer and sets the totalMoviesMade instance variable if the input matches the given amount
+	public void setTotalMoviesMade(int totalMoviesMade) {
+		if (totalMoviesMade >= 0 && totalMoviesMade <= 100) {
+			this.totalMoviesMade = totalMoviesMade;
+		} else {
+			throw new IllegalArgumentException("Invalid total movies made. It must be between 0 and 100.");
+		}
+	}
+
+	public int getTotalMoviesMade() {
+		return totalMoviesMade;
+	}
+
+	// method to create an actor object
+	public void makeActor() {
+		makePerson();
+
+		String mainGenre = JOptionPane.showInputDialog("Enter the main genre (Comedy, Horror or Drama):");
+		setMainGenre(mainGenre);
+
+		int totalMoviesMade = Integer.parseInt(JOptionPane.showInputDialog("Enter the total number of movies made:"));
+		setTotalMoviesMade(totalMoviesMade);
+	}
+	public String getGenre() {
+		return getMainGenre();
+	}
+
+	public int getMoviesMade() {
+		return getTotalMoviesMade();
+	}
+
+	//You know what this does :)
+	@Override
+	public String toString() {
+		return super.toString() + "Main Genre: " + mainGenre + "\nTotal Movies Made: " + totalMoviesMade + "\n";
+	}
+}
+
+public class Prisoner extends Person {
+	private String typeOfCrime;
+	private int yearsSentenced;
+	private int yearsRemaining;
+
+	public Prisoner() {
+		super(true, true); // Pass true, true to indicate this is a Prisoner
+		makePrisoner();
+	}
+
+	// The type of crime committed by the Prisoner, checking to see if it is valid
+	private void setTypeOfCrime(String typeOfCrime) {
+		if (typeOfCrime.equalsIgnoreCase("Murder") || typeOfCrime.equalsIgnoreCase("Rape") || typeOfCrime.equalsIgnoreCase("Theft") || typeOfCrime.equalsIgnoreCase("Assault") || typeOfCrime.equalsIgnoreCase("White Collar")) {
+			this.typeOfCrime = typeOfCrime;
+		} else {
+			throw new IllegalArgumentException("Invalid crime type. Must be Murder, Rape, Theft, Assault, or White Collar.");
+		}
+	}
+
+	private String getTypeOfCrime() {
+		return typeOfCrime;
+	}
+
+	// The number of years sentenced for the Prisoner, checking to see if its within range
+	private void setYearsSentenced(int yearsSentenced) {
+		if (yearsSentenced >= 1 && yearsSentenced <= 1000) {
+			this.yearsSentenced = yearsSentenced;
+		} else {
+			throw new IllegalArgumentException("Invalid years sentenced. Must be between 1 and 1000 years.");
+		}
+	}
+
+	private int getYearsSentenced() {
+		return yearsSentenced;
+	}
+
+	// The number of years remaining for the Prisoner's sentence making sure it does not exceed years sentenced
+	private void setYearsRemaining(int yearsRemaining) {
+		if (yearsRemaining >= 1 && yearsRemaining <= yearsSentenced) {
+			this.yearsRemaining = yearsRemaining;
+		} else {
+			throw new IllegalArgumentException("Invalid years remaining. Must be between 1 and the years sentenced.");
+		}
+	}
+
+	private int getYearsRemaining() {
+		return yearsRemaining;
+	}
+
+	// Get the type of crime method to make the required private to public
+	public String getCrime() {
+		return getTypeOfCrime();
+	}
+
+	// Get the total number of years sentenced to make the required private to public
+	public int getTotalYearsSentenced() {
+		return getYearsSentenced();
+	}
+
+	// Get the total years remaining to make the required private to public
+	public int getRemainingYears() {
+		return getYearsRemaining();
+	}
+
+	//Object's properties to make prisoner
+	public void makePrisoner() {
+		makePerson();
+
+		String typeOfCrime = JOptionPane.showInputDialog("Enter the type of crime (Murder, Rape, Theft, Assault, White Collar):");
+		setTypeOfCrime(typeOfCrime);
+
+		int yearsSentenced = Integer.parseInt(JOptionPane.showInputDialog("Enter the years sentenced:"));
+		setYearsSentenced(yearsSentenced);
+
+		int yearsRemaining = Integer.parseInt(JOptionPane.showInputDialog("Enter the years remaining:"));
+		setYearsRemaining(yearsRemaining);
+	}
+
+	//you know what this does :)
+	@Override
+	public String toString() {
+		return super.toString() + "Type of Crime: " + typeOfCrime + "\nYears Sentenced: " + yearsSentenced + "\nYears Remaining: " + yearsRemaining + "\n";
+	}
+}
+
+public class Name {
+	private String firstName;
+	private String middleInitial;
+	private String lastName;
+
+	public Name(String firstName, String middleInitial, String lastName) {
+		this.firstName = firstName;
+		this.middleInitial = middleInitial;
+		this.lastName = lastName;
+	}
+
+	@Override
+	public String toString() {
+		return firstName + " " + middleInitial + ". " + lastName;
+	}
+}
